@@ -5,9 +5,9 @@
 
 ## Cấu hình
 Cập nhật lại đường dẫn Tomcat trước khi chạy:
-SET TOMCAT_HOME=C:\tomcat
-SET WEBAPPS_FOLDER=%TOMCAT_HOME%\webapps
-SET LOCALHOST_URL=http://localhost:8080
+ - SET TOMCAT_HOME=C:\tomcat
+ - SET WEBAPPS_FOLDER=%TOMCAT_HOME%\webapps
+ - SET LOCALHOST_URL=http://localhost:8080
 
 Tomcat phải có sẵn thư mục `bin` chứa `startup.bat` và `shutdown.bat`.
 
@@ -23,15 +23,22 @@ Script thực thi trực tiếp và dừng lại để người dùng xem trạn
 
 ## Hoạt động nội bộ
 Start:
+```
 call "%TOMCAT_HOME%\bin\startup.bat"
+```
 Stop:
+```
 call "%TOMCAT_HOME%\bin\shutdown.bat"
+```
 Restart: shutdown → pause → startup.
 Mở thư mục:
+```
 start "" "%WEBAPPS_FOLDER%"
+```
 Mở trình duyệt:
+```
 start "" "%LOCALHOST_URL%"
-
+```
 
 
 ## Lưu ý
