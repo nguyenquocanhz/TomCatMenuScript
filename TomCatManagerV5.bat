@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 REM ==============================================================================
 REM   TOMCAT MANAGER - STATIC MENU
 REM   Author: Fullstack Dev
-REM   Description: Giao dien quan ly Tomcat (Khong tu dong refresh)
+REM   Description: Giao dien quan ly Tomcat (Download Version Selection)
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
@@ -24,7 +24,7 @@ set "TOMCAT_HOME="
 set "SERVER_STATUS=UNKNOWN"
 set "NEED_CONFIG=0"
 
-REM --- 3. LOGIC KIEM TRA FILE CAU HINH (FIX LOI SYNTAX) ---
+REM --- 3. LOGIC KIEM TRA FILE CAU HINH ---
 
 REM Truong hop 1: File data.json KHONG ton tai
 IF NOT EXIST "%CONFIG_FILE%" goto :CASE_MISSING_CONFIG
@@ -63,7 +63,7 @@ echo    %cGray%Home:%cWhite% %TOMCAT_HOME%
 echo    %cGray%Port:%cWhite% %TOMCAT_PORT%
 echo.
 
-REM --- Check Status (Chi check 1 lan khi load menu) ---
+REM --- Check Status ---
 netstat -ano | findStr ":%TOMCAT_PORT% " | findStr "LISTENING" >nul
 if %errorlevel%==0 (
     set "SERVER_STATUS=RUNNING"
@@ -84,13 +84,14 @@ echo    5. Mo thu muc Webapps
 echo    6. Mo Localhost
 echo    7. Cau hinh lai duong dan
 echo    8. Refresh (Tai lai trang thai)
+echo    9. Download va Cai dat Tomcat (Moi)
 echo    0. Thoat
 echo.
 echo %cGray%------------------------------------------------------------%cWhite%
 
 REM --- INPUT ---
 set "opt="
-set /p "opt=> Chon chuc nang [0-8]: "
+set /p "opt=> Chon chuc nang [0-9]: "
 
 if "%opt%"=="1" goto ACTION_START
 if "%opt%"=="2" goto ACTION_STOP
@@ -100,6 +101,7 @@ if "%opt%"=="5" start "" "%WEBAPPS_FOLDER%" & goto MAIN_MENU
 if "%opt%"=="6" start "" "%LOCALHOST_URL%" & goto MAIN_MENU
 if "%opt%"=="7" goto UPDATE_PATH_FLOW
 if "%opt%"=="8" goto MAIN_MENU
+if "%opt%"=="9" goto ACTION_DOWNLOAD_TOMCAT
 if "%opt%"=="0" exit
 
 goto MAIN_MENU
@@ -151,20 +153,20 @@ REM ============================================================================
     echo Duong dan hien tai (trong file): "%TOMCAT_HOME%"
     echo.
     
-    REM Hien thi prompt khac nhau (Bat buoc hay Tuy chon)
     if "%NEED_CONFIG%"=="1" (
-        set /p "NEW_HOME=> Nhap Path moi: "
+        echo [Goi y] Ban co the nhap 9 de tai Tomcat tu dong.
+        set /p "NEW_HOME=> Nhap Path moi (hoac 9 de Download): "
     ) else (
-        set /p "NEW_HOME=> Nhap Path moi (0 de Quay lai): "
+        set /p "NEW_HOME=> Nhap Path moi (0 de Quay lai, 9 de Download): "
     )
     
     set "NEW_HOME=!NEW_HOME:"=!"
     
-    REM Xu ly quay lai neu nhap 0 va khong phai dang cau hinh bat buoc
+    REM Logic Download/Quay lai
+    if "!NEW_HOME!"=="9" goto ACTION_DOWNLOAD_TOMCAT
     if "!NEW_HOME!"=="0" (
         if "%NEED_CONFIG%"=="1" (
-            echo.
-            echo %cRed%[LOI] Ban can thiet lap duong dan truoc khi su dung!%cWhite%
+            echo %cRed%[LOI] Ban can thiet lap duong dan truoc!%cWhite%
             pause
             goto UPDATE_PATH_FLOW
         ) else (
@@ -175,8 +177,7 @@ REM ============================================================================
     if not exist "!NEW_HOME!\bin\catalina.bat" (
         echo.
         echo %cRed%[LOI] Duong dan khong hop le!%cWhite%
-        echo Khong tim thay \bin\catalina.bat tai duong dan nay.
-        echo.
+        echo Khong tim thay \bin\catalina.bat
         pause
         goto UPDATE_PATH_FLOW
     )
@@ -207,7 +208,6 @@ REM ============================================================================
     echo %cGreen%Starting Server...%cWhite%
     call catalina.bat version
     start "Apache Tomcat Log" call catalina.bat start
-    REM Cho mot chut de server khoi dong roi quay lai menu check status
     timeout /t 5 >nul
     goto MAIN_MENU
 
@@ -242,4 +242,107 @@ REM ============================================================================
     echo %cGreen%Created! Opening folder...%cWhite%
     timeout /t 1 >nul
     explorer "%WEBAPPS_FOLDER%\%projName%"
+    goto MAIN_MENU
+
+:ACTION_DOWNLOAD_TOMCAT
+    cls
+    echo %cCyan%============================================================%cWhite%
+    echo      CHON PHIEN BAN TOMCAT DE TAI
+    echo %cCyan%============================================================%cWhite%
+    echo.
+    echo    1. Tomcat 11 (Latest Stable - 11.0.2)
+    echo    2. Tomcat 10 (Current Stable - 10.1.34)
+    echo    3. Tomcat 9  (LTS Pho bien - 9.0.98)
+    echo    4. Tomcat 8  (Legacy - 8.5.100)
+    echo    5. Nhap version thu cong (Custom)
+    echo    0. Quay lai
+    echo.
+    
+    set /p "vChoice=> Chon phien ban [1-5]: "
+    
+    if "%vChoice%"=="0" goto MAIN_MENU
+    
+    REM --- Logic set URL ---
+    set "DL_VER="
+    set "DL_MAJOR="
+    
+    if "%vChoice%"=="1" (
+        set "DL_VER=11.0.2"
+        set "DL_MAJOR=11"
+    )
+    if "%vChoice%"=="2" (
+        set "DL_VER=10.1.34"
+        set "DL_MAJOR=10"
+    )
+    if "%vChoice%"=="3" (
+        set "DL_VER=9.0.98"
+        set "DL_MAJOR=9"
+    )
+    if "%vChoice%"=="4" (
+        set "DL_VER=8.5.100"
+        set "DL_MAJOR=8"
+    )
+    if "%vChoice%"=="5" (
+        echo.
+        echo Hay nhap Major Version (VD: 9)
+        set /p "DL_MAJOR=> Major Ver: "
+        echo.
+        echo Hay nhap Full Version (VD: 9.0.98)
+        set /p "DL_VER=> Full Ver: "
+    )
+    
+    if "!DL_VER!"=="" goto ACTION_DOWNLOAD_TOMCAT
+    
+    REM Tao URL dong
+    set "DL_URL=https://dlcdn.apache.org/tomcat/tomcat-!DL_MAJOR!/v!DL_VER!/bin/apache-tomcat-!DL_VER!-windows-x64.zip"
+    
+    echo.
+    echo --------------------------------------------------
+    echo DANG CHUAN BI TAI TOMCAT !DL_VER!
+    echo URL: !DL_URL!
+    echo --------------------------------------------------
+    echo.
+    echo Nhap thu muc ban muon cai dat Tomcat. (VD: D:\Tools)
+    echo Script se tao folder va giai nen tai do.
+    echo.
+    
+    set /p "INSTALL_DIR=> Install Location: "
+    set "INSTALL_DIR=!INSTALL_DIR:"=!"
+    IF "!INSTALL_DIR!"=="" goto MAIN_MENU
+    
+    if not exist "!INSTALL_DIR!" mkdir "!INSTALL_DIR!"
+    
+    echo.
+    echo %cYellow%[1/2] Dang tai xuong... (Vui long cho)%cWhite%
+    
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '!DL_URL!' -OutFile '!INSTALL_DIR!\tomcat.zip'"
+    
+    if not exist "!INSTALL_DIR!\tomcat.zip" (
+        echo.
+        echo %cRed%[LOI] Download that bai!%cWhite%
+        echo Link co the da het han hoac khong ton tai.
+        echo URL: !DL_URL!
+        pause
+        goto ACTION_DOWNLOAD_TOMCAT
+    )
+    
+    echo %cYellow%[2/2] Dang giai nen...%cWhite%
+    powershell -Command "Expand-Archive -Path '!INSTALL_DIR!\tomcat.zip' -DestinationPath '!INSTALL_DIR!' -Force"
+    del "!INSTALL_DIR!\tomcat.zip"
+    
+    for /d %%D in ("!INSTALL_DIR!\apache-tomcat-*") do (
+        set "DETECTED_HOME=%%D"
+    )
+    
+    echo.
+    echo %cGreen%[THANH CONG] Da cai dat tai: !DETECTED_HOME!%cWhite%
+    
+    call :SAVE_CONFIG_TO_JSON "!DETECTED_HOME!" "%DEFAULT_PORT%"
+    set "TOMCAT_HOME=!DETECTED_HOME!"
+    set "TOMCAT_PORT=%DEFAULT_PORT%"
+    set "NEED_CONFIG=0"
+    
+    call :INIT_DEPENDENT_VARS
+    echo Da cap nhat cau hinh tu dong.
+    pause
     goto MAIN_MENU
