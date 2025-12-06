@@ -1,50 +1,69 @@
-# README – RunTomCat.bat
+# 🚀 Apache Tomcat Manager CLI
 
-## Mô tả
-`RunTomCat.bat` là script hỗ trợ quản lý Apache Tomcat trên Windows thông qua menu CLI. File cho phép start, stop, restart Tomcat và mở nhanh thư mục `webapps` hoặc trang `localhost`.
+**Apache Tomcat Manager CLI** là một công cụ tự động hóa mạnh mẽ dành cho môi trường Windows, được viết bằng **Batch Script** kết hợp **PowerShell**. Công cụ này giải quyết các vấn đề tốn thời gian khi làm việc với Java Web: tải server, cấu hình biến môi trường thủ công, và quản lý vòng đời (lifecycle) của Tomcat Server.
 
-## Cấu hình
-Cập nhật lại đường dẫn Tomcat trước khi chạy:
- - SET TOMCAT_HOME=C:\tomcat
- - SET WEBAPPS_FOLDER=%TOMCAT_HOME%\webapps
- - SET LOCALHOST_URL=http://localhost:8080
+Dự án hướng tới việc tối ưu hóa quy trình phát triển (DevOps local) cho các lập trình viên Java, giúp việc khởi tạo và quản lý môi trường diễn ra chỉ với vài phím bấm.
 
-Tomcat phải có sẵn thư mục `bin` chứa `startup.bat` và `shutdown.bat`.
+---
 
-## Sử dụng
-Chạy file và chọn chức năng trong menu:
-- 1: Khởi động Tomcat  
-- 2: Dừng Tomcat  
-- 3: Khởi động lại Tomcat  
-- 4: Mở thư mục webapps  
-- 5: Mở localhost  
+## ✨ Tính Năng Nổi Bật
 
-Script thực thi trực tiếp và dừng lại để người dùng xem trạng thái.
+### 1. Quản Lý Server Toàn Diện (Server Lifecycle)
+* **Start/Stop/Restart:** Thao tác bật, tắt và khởi động lại Tomcat nhanh chóng thông qua Menu CLI.
+* **Smart Logging:** Khi Start server, cửa sổ Log (Console) được tách riêng biệt, giúp giữ giao diện quản lý sạch sẽ và không bị trôi dòng lệnh.
+* **Live Status:** Hiển thị trạng thái Server **(Online/Offline)** theo thời gian thực ngay trên Menu với màu sắc trực quan (ANSI Colors).
 
-## Hoạt động nội bộ
-Start:
-```
-call "%TOMCAT_HOME%\bin\startup.bat"
-```
-Stop:
-```
-call "%TOMCAT_HOME%\bin\shutdown.bat"
-```
-Restart: shutdown → pause → startup.
-Mở thư mục:
-```
-start "" "%WEBAPPS_FOLDER%"
-```
-Mở trình duyệt:
-```
-start "" "%LOCALHOST_URL%"
-```
+### 2. Tự Động Hóa Cài Đặt (Auto-Provisioning)
+* **Auto-Download:** Tích hợp tính năng tải xuống các phiên bản Tomcat (11, 10, 9, 8) trực tiếp từ máy chủ Apache.
+* **Auto-Extract & Setup:** Tự động giải nén và thiết lập cấu trúc thư mục mà không cần người dùng can thiệp thủ công.
+* **Smart Config:** Tự động phát hiện và tạo file cấu hình `data.json`. Nếu đường dẫn sai hoặc chưa có, tool sẽ hướng dẫn thiết lập lại (Self-healing).
 
+### 3. Tăng Tốc Quy Trình Phát Triển (Productivity)
+* **Project Scaffolding:** Hỗ trợ tạo nhanh cấu trúc dự án mới và file `index.jsp` mẫu ngay trong thư mục `webapps`.
+* **Quick Access:** Phím tắt để mở nhanh thư mục mã nguồn (`webapps`) hoặc trình duyệt (`localhost`) để kiểm tra sản phẩm.
 
-## Lưu ý
-- Nếu Tomcat chạy dạng Windows Service, script sẽ không can thiệp được.  
-- Khi đổi port trong `server.xml`, cần chỉnh lại `LOCALHOST_URL`.  
-- Khuyến nghị dùng trong môi trường phát triển hoặc test.
+---
 
-## Author 
-- Nguyễn Quốc Anh 
+## 🛠️ Cơ Chế Hoạt Động & Công Nghệ
+
+Dự án sử dụng các kỹ thuật scripting thuần túy của Windows, đảm bảo tính tương thích cao mà không cần cài đặt phần mềm thứ 3:
+
+* **Ngôn ngữ:** Batch Script (`.bat`), PowerShell (xử lý JSON, Download), VBScript (phụ trợ).
+* **Cấu hình:** Sử dụng `data.json` để lưu trữ biến môi trường (`TOMCAT_HOME`, `PORT`) thay vì hardcode trong script, giúp dễ dàng chia sẻ và tùy chỉnh.
+* **Core Logic:**
+    * Wrapper cho các file `startup.bat` và `shutdown.bat` gốc của Tomcat.
+    * Kiểm tra port và process ID để xác định trạng thái Server.
+
+---
+
+## 📋 Yêu Cầu Hệ Thống
+
+* **OS:** Windows 10/11 (hoặc các bản Windows cũ hơn có hỗ trợ PowerShell).
+* **Environment:** Máy cần cài đặt sẵn **Java (JDK/JRE)** và cấu hình biến `JAVA_HOME`.
+
+---
+
+## 📖 Hướng Dẫn Sử Dụng Nhanh
+
+1.  **Cài đặt:** Tải file `TomcatManager.bat` về máy (Portable, không cần cài đặt).
+2.  **Khởi chạy:** Double-click file để chạy.
+3.  **Setup lần đầu:**
+    * Nếu đã có Tomcat: Nhập đường dẫn thư mục vào tool.
+    * Nếu chưa có: Chọn **Option 9** để tool tự tải và cài đặt phiên bản Tomcat mới nhất.
+4.  **Điều khiển:** Sử dụng các phím số trên Menu để quản lý:
+    * `[1-3]`: Điều khiển Server.
+    * `[4]`: Tạo dự án mới.
+    * `[5-6]`: Mở thư mục hoặc trình duyệt.
+    * `[7]`: Cấu hình lại (Đổi Port, đổi đường dẫn).
+
+---
+
+## ⚠️ Troubleshooting (Xử lý sự cố thường gặp)
+
+* **Lỗi "Port already in use":** Do Tomcat đang chạy ngầm hoặc port mặc định (8080) bị chiếm dụng. -> Sử dụng chức năng **Config (7)** để đổi Port hoặc **Stop (2)** để dừng tiến trình cũ.
+* **Lỗi hiển thị màu:** Một số terminal cũ (cmd trên Win 7) không hỗ trợ ANSI color -> Chức năng vẫn hoạt động nhưng giao diện sẽ ở dạng text thuần.
+
+---
+
+**Author:** Nguyễn Quốc Anh (Fullstack Developer)
+*Dự án được xây dựng với mục đích học tập và chia sẻ cộng đồng.*
