@@ -2,9 +2,9 @@
 setlocal EnableDelayedExpansion
 
 REM ==============================================================================
-REM   TOMCAT MANAGER - STATIC MENU
-REM   Author: Fullstack Dev
-REM   Description: Giao dien quan ly Tomcat (Download Version Selection)
+REM   TOMCAT MANAGER - FULLSTACK EDITION (v3.2)
+REM   Author: Nguyen Quoc Anh
+REM   Description: Quan ly Tomcat, Project, va Multi-version Java Downloader
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
@@ -22,23 +22,20 @@ set "DEFAULT_PORT=8080"
 set "TOMCAT_PORT=%DEFAULT_PORT%"
 set "TOMCAT_HOME="
 set "SERVER_STATUS=UNKNOWN"
+set "JAVA_STATUS=UNKNOWN"
 set "NEED_CONFIG=0"
 
 REM --- 3. LOGIC KIEM TRA FILE CAU HINH ---
-
-REM Truong hop 1: File data.json KHONG ton tai
 IF NOT EXIST "%CONFIG_FILE%" goto :CASE_MISSING_CONFIG
 
-REM Truong hop 2: File ton tai -> Doc va Kiem tra noi dung
 call :LOAD_CONFIG_FROM_JSON
 call :VALIDATE_TOMCAT_HOME
 IF !errorlevel! NEQ 0 goto :CASE_INVALID_CONFIG
 
-REM Truong hop 3: Moi thu OK -> Khoi tao bien va vao Menu
 call :INIT_DEPENDENT_VARS
 goto :MAIN_MENU
 
-REM --- CAC LABEL XU LY LOI CAU HINH ---
+REM --- LABEL XU LY LOI CAU HINH ---
 :CASE_MISSING_CONFIG
     set "MSG_REASON=Chua tim thay file cau hinh data.json. Vui long thiet lap lan dau."
     set "NEED_CONFIG=1"
@@ -51,19 +48,27 @@ REM --- CAC LABEL XU LY LOI CAU HINH ---
 
 
 REM ==============================================================================
-REM   MAIN MENU (STATIC)
+REM   MAIN MENU
 REM ==============================================================================
 :MAIN_MENU
 cls
+REM --- Kiem tra Java moi lan vao menu ---
+call :CHECK_JAVA_ENV
+
 echo %cCyan%============================================================%cWhite%
-echo    APACHE TOMCAT MANAGER %cGray%(Static Menu)%cWhite%
+echo    APACHE TOMCAT MANAGER %cGray%(v3.2 - Multi Java)%cWhite%
 echo %cCyan%============================================================%cWhite%
 echo.
-echo    %cGray%Home:%cWhite% %TOMCAT_HOME%
-echo    %cGray%Port:%cWhite% %TOMCAT_PORT%
+echo    %cGray%Tomcat Home:%cWhite% %TOMCAT_HOME%
+echo    %cGray%Tomcat Port:%cWhite% %TOMCAT_PORT%
+if "%JAVA_STATUS%"=="OK" (
+    echo    %cGray%Java Home:  %cWhite% %JAVA_HOME% %cGreen%[OK]%cWhite%
+) else (
+    echo    %cGray%Java Home:  %cWhite% %cRed%[MISSING] - Can not start server!%cWhite%
+)
 echo.
 
-REM --- Check Status ---
+REM --- Check Server Status ---
 netstat -ano | findStr ":%TOMCAT_PORT% " | findStr "LISTENING" >nul
 if %errorlevel%==0 (
     set "SERVER_STATUS=RUNNING"
@@ -80,27 +85,30 @@ echo    2. Tat Server (Stop)
 echo    3. Khoi dong lai (Restart)
 echo.
 echo    4. Tao Project moi
-echo    5. Mo thu muc Webapps
-echo    6. Mo Localhost
-echo    7. Cau hinh lai duong dan
-echo    8. Refresh (Tai lai trang thai)
+echo    5. Quet va Mo Project (Scan Webapps)
+echo    6. Mo thu muc Webapps
+echo    7. Mo Localhost (Root)
+echo    8. Cau hinh lai duong dan Tomcat
 echo    9. Download va Cai dat Tomcat (Moi)
+echo.
+echo    %cYellow%J. Download va Cai dat Oracle JDK (Tuy chon)%cWhite%
 echo    0. Thoat
 echo.
 echo %cGray%------------------------------------------------------------%cWhite%
 
 REM --- INPUT ---
 set "opt="
-set /p "opt=> Chon chuc nang [0-9]: "
+set /p "opt=> Chon chuc nang [0-9, J]: "
 
+if /I "%opt%"=="J" goto ACTION_INSTALL_JAVA
 if "%opt%"=="1" goto ACTION_START
 if "%opt%"=="2" goto ACTION_STOP
 if "%opt%"=="3" goto ACTION_RESTART
 if "%opt%"=="4" goto ACTION_CREATE_PROJECT
-if "%opt%"=="5" start "" "%WEBAPPS_FOLDER%" & goto MAIN_MENU
-if "%opt%"=="6" start "" "%LOCALHOST_URL%" & goto MAIN_MENU
-if "%opt%"=="7" goto UPDATE_PATH_FLOW
-if "%opt%"=="8" goto MAIN_MENU
+if "%opt%"=="5" goto ACTION_SCAN_OPEN
+if "%opt%"=="6" start "" "%WEBAPPS_FOLDER%" & goto MAIN_MENU
+if "%opt%"=="7" start "" "%LOCALHOST_URL%" & goto MAIN_MENU
+if "%opt%"=="8" goto UPDATE_PATH_FLOW
 if "%opt%"=="9" goto ACTION_DOWNLOAD_TOMCAT
 if "%opt%"=="0" exit
 
@@ -109,6 +117,19 @@ goto MAIN_MENU
 REM ==============================================================================
 REM   CORE FUNCTIONS
 REM ==============================================================================
+
+:CHECK_JAVA_ENV
+    REM Kiem tra bien moi truong
+    if "%JAVA_HOME%"=="" (
+        set "JAVA_STATUS=MISSING"
+        exit /b 1
+    )
+    if not exist "%JAVA_HOME%\bin\java.exe" (
+        set "JAVA_STATUS=MISSING"
+        exit /b 1
+    )
+    set "JAVA_STATUS=OK"
+    exit /b 0
 
 :LOAD_CONFIG_FROM_JSON
     for /f "usebackq delims=" %%A in (`powershell -NoProfile -Command "try {(Get-Content '%CONFIG_FILE%' -Raw | ConvertFrom-Json).TOMCAT_HOME} catch {}"`) do set "TOMCAT_HOME=%%A"
@@ -138,6 +159,102 @@ REM ============================================================================
 REM   ACTION HANDLERS
 REM ==============================================================================
 
+:ACTION_INSTALL_JAVA
+    cls
+    echo %cCyan%============================================================%cWhite%
+    echo      CHON PHIEN BAN ORACLE JDK
+    echo %cCyan%============================================================%cWhite%
+    echo.
+    echo    1. JDK 25 (Latest / Early Access)
+    echo    2. JDK 21 (LTS - Recommended)
+    echo    3. JDK 17 (LTS - Stable)
+    echo    4. Nhap so phien ban khac (VD: 24, 23...)
+    echo    0. Quay lai
+    echo.
+    
+    set /p "jChoice=> Chon phien ban [1-4]: "
+    
+    if "%jChoice%"=="0" goto MAIN_MENU
+    
+    set "J_VER="
+    
+    if "%jChoice%"=="1" set "J_VER=25"
+    if "%jChoice%"=="2" set "J_VER=21"
+    if "%jChoice%"=="3" set "J_VER=17"
+    if "%jChoice%"=="4" (
+        echo.
+        set /p "J_VER=> Nhap so Version (VD: 24): "
+    )
+    
+    if "!J_VER!"=="" goto ACTION_INSTALL_JAVA
+    
+    echo.
+    echo --------------------------------------------------
+    echo DANG CHUAN BI TAI ORACLE JDK !J_VER!
+    echo.
+    echo Nhap thu muc ban muon cai dat Java.
+    echo (VD: D:\Tools hoac C:\Java)
+    echo.
+    set /p "J_INSTALL_DIR=> Install Location: "
+    set "J_INSTALL_DIR=!J_INSTALL_DIR:"=!"
+    IF "!J_INSTALL_DIR!"=="" goto MAIN_MENU
+    
+    if not exist "!J_INSTALL_DIR!" mkdir "!J_INSTALL_DIR!"
+
+    REM --- Tao URL dong ---
+    set "JDK_URL=https://download.oracle.com/java/!J_VER!/latest/jdk-!J_VER!_windows-x64_bin.zip"
+    
+    echo.
+    echo %cYellow%[1/2] Dang tai JDK !J_VER!... (Source: Oracle)%cWhite%
+    echo URL: !JDK_URL!
+    
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '!JDK_URL!' -OutFile '!J_INSTALL_DIR!\jdk.zip'"
+    
+    if not exist "!J_INSTALL_DIR!\jdk.zip" (
+        echo %cRed%[LOI] Download that bai!%cWhite%
+        echo Link khong ton tai hoac mat mang.
+        echo URL: !JDK_URL!
+        pause
+        goto ACTION_INSTALL_JAVA
+    )
+    
+    echo %cYellow%[2/2] Dang giai nen va cau hinh...%cWhite%
+    powershell -Command "Expand-Archive -Path '!J_INSTALL_DIR!\jdk.zip' -DestinationPath '!J_INSTALL_DIR!' -Force"
+    del "!J_INSTALL_DIR!\jdk.zip"
+    
+    REM Tu dong tim folder vua giai nen
+    set "DETECTED_JAVA="
+    for /d %%D in ("!J_INSTALL_DIR!\jdk-*") do (
+        set "DETECTED_JAVA=%%D"
+    )
+    
+    if "!DETECTED_JAVA!"=="" (
+        echo %cRed%[LOI] Khong tim thay folder JDK sau khi giai nen.%cWhite%
+        pause
+        goto MAIN_MENU
+    )
+    
+    echo.
+    echo %cGreen%[THANH CONG] Da cai dat tai: !DETECTED_JAVA!%cWhite%
+    echo Dang thiet lap bien moi truong JAVA_HOME...
+    
+    REM 1. Set cho User (luu vao Registry)
+    setx JAVA_HOME "!DETECTED_JAVA!" >nul
+    
+    REM 2. Set cho Session hien tai
+    set "JAVA_HOME=!DETECTED_JAVA!"
+    
+    REM 3. Them vao Path (Session hien tai)
+    set "PATH=%JAVA_HOME%\bin;%PATH%"
+    
+    echo.
+    echo Da thiet lap JAVA_HOME.
+    echo %cYellow%Check: %cWhite%
+    java -version
+    echo.
+    pause
+    goto MAIN_MENU
+
 :UPDATE_PATH_FLOW
     cls
     color 0E
@@ -152,7 +269,6 @@ REM ============================================================================
     )
     echo Duong dan hien tai (trong file): "%TOMCAT_HOME%"
     echo.
-    
     if "%NEED_CONFIG%"=="1" (
         echo [Goi y] Ban co the nhap 9 de tai Tomcat tu dong.
         set /p "NEW_HOME=> Nhap Path moi (hoac 9 de Download): "
@@ -197,6 +313,15 @@ REM ============================================================================
     goto MAIN_MENU
 
 :ACTION_START
+    call :CHECK_JAVA_ENV
+    if !errorlevel! NEQ 0 (
+        echo.
+        echo %cRed%[LOI] Chua cai dat JAVA!%cWhite%
+        echo Vui long chon chuc nang 'J' o menu de tai Java truoc.
+        pause
+        goto MAIN_MENU
+    )
+
     if "%SERVER_STATUS%"=="RUNNING" (
         echo.
         echo %cYellow%[INFO] Server dang chay roi!%cWhite%
@@ -206,6 +331,8 @@ REM ============================================================================
     cd /d "%TOMCAT_HOME%\bin"
     echo.
     echo %cGreen%Starting Server...%cWhite%
+    REM Set JAVA_HOME explicitly for this session
+    set "JAVA_HOME=%JAVA_HOME%"
     call catalina.bat version
     start "Apache Tomcat Log" call catalina.bat start
     timeout /t 5 >nul
@@ -215,6 +342,7 @@ REM ============================================================================
     echo.
     echo %cRed%Stopping Server...%cWhite%
     cd /d "%TOMCAT_HOME%\bin"
+    set "JAVA_HOME=%JAVA_HOME%"
     call shutdown.bat
     timeout /t 3 >nul
     goto MAIN_MENU
@@ -244,6 +372,53 @@ REM ============================================================================
     explorer "%WEBAPPS_FOLDER%\%projName%"
     goto MAIN_MENU
 
+:ACTION_SCAN_OPEN
+    cls
+    echo %cCyan%============================================================%cWhite%
+    echo      DANH SACH PROJECT TRONG WEBAPPS
+    echo %cCyan%============================================================%cWhite%
+    echo.
+    
+    set "count=0"
+    
+    for /d %%D in ("%WEBAPPS_FOLDER%\*") do (
+        set /a count+=1
+        set "PROJ[!count!]=%%~nxD"
+        echo    !count!. %%~nxD
+    )
+    
+    echo.
+    if !count! EQU 0 (
+        echo %cRed%[!] Khong tim thay project nao trong webapps.%cWhite%
+        pause
+        goto MAIN_MENU
+    )
+    
+    echo    0. Quay lai
+    echo.
+    set "pChoice="
+    set /p "pChoice=> Chon so thu tu project de mo: "
+    
+    if "%pChoice%"=="0" goto MAIN_MENU
+    
+    if !pChoice! GTR !count! (
+        echo %cRed%Lua chon khong hop le!%cWhite%
+        timeout /t 2 >nul
+        goto ACTION_SCAN_OPEN
+    )
+    
+    set "SELECTED_PROJ=!PROJ[%pChoice%]!"
+    
+    echo.
+    echo %cGreen%Dang mo project: !SELECTED_PROJ! ...%cWhite%
+    
+    if /I "!SELECTED_PROJ!"=="ROOT" (
+        start "" "%LOCALHOST_URL%"
+    ) else (
+        start "" "%LOCALHOST_URL%/!SELECTED_PROJ!"
+    )
+    goto MAIN_MENU
+
 :ACTION_DOWNLOAD_TOMCAT
     cls
     echo %cCyan%============================================================%cWhite%
@@ -257,12 +432,10 @@ REM ============================================================================
     echo    5. Nhap version thu cong (Custom)
     echo    0. Quay lai
     echo.
-    
     set /p "vChoice=> Chon phien ban [1-5]: "
     
     if "%vChoice%"=="0" goto MAIN_MENU
     
-    REM --- Logic set URL ---
     set "DL_VER="
     set "DL_MAJOR="
     
@@ -293,7 +466,6 @@ REM ============================================================================
     
     if "!DL_VER!"=="" goto ACTION_DOWNLOAD_TOMCAT
     
-    REM Tao URL dong
     set "DL_URL=https://dlcdn.apache.org/tomcat/tomcat-!DL_MAJOR!/v!DL_VER!/bin/apache-tomcat-!DL_VER!-windows-x64.zip"
     
     echo.
@@ -302,10 +474,9 @@ REM ============================================================================
     echo URL: !DL_URL!
     echo --------------------------------------------------
     echo.
-    echo Nhap thu muc ban muon cai dat Tomcat. (VD: D:\Tools)
-    echo Script se tao folder va giai nen tai do.
+    echo Nhap thu muc ban muon cai dat Tomcat.
+    echo (VD: D:\Tools)
     echo.
-    
     set /p "INSTALL_DIR=> Install Location: "
     set "INSTALL_DIR=!INSTALL_DIR:"=!"
     IF "!INSTALL_DIR!"=="" goto MAIN_MENU
@@ -320,8 +491,6 @@ REM ============================================================================
     if not exist "!INSTALL_DIR!\tomcat.zip" (
         echo.
         echo %cRed%[LOI] Download that bai!%cWhite%
-        echo Link co the da het han hoac khong ton tai.
-        echo URL: !DL_URL!
         pause
         goto ACTION_DOWNLOAD_TOMCAT
     )
