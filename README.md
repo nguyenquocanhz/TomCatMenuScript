@@ -57,7 +57,39 @@ Dự án sử dụng các kỹ thuật scripting thuần túy của Windows, đ�
     * `[7]`: Cấu hình lại (Đổi Port, đổi đường dẫn).
 
 ---
+### 1. Menu Chính (Main Dashboard)
+Giao diện trực quan với màu sắc, hiển thị trạng thái Server và các thông tin cấu hình quan trọng ngay lập tức.
 
+```text
+============================================================
+   APACHE TOMCAT MANAGER (v3.2 - Multi Java)
+============================================================
+
+   Tomcat Home: D:\Tools\apache-tomcat-10.1.34
+   Tomcat Port: 8080
+   Java Home:   C:\Java\jdk-21 [OK]
+
+   STATUS: [  ONLINE  ]  Server is running on port 8080
+
+------------------------------------------------------------
+
+   1. Bat Server (Start)
+   2. Tat Server (Stop)
+   3. Khoi dong lai (Restart)
+
+   4. Tao Project moi
+   5. Quet va Mo Project (Scan Webapps)
+   6. Mo thu muc Webapps
+   7. Mo Localhost (Root)
+   8. Cau hinh lai duong dan Tomcat
+   9. Download va Cai dat Tomcat (Moi)
+
+   J. Download va Cai dat Oracle JDK (Tuy chon)
+   0. Thoat
+
+------------------------------------------------------------
+> Chon chuc nang [0-9, J]: _
+```
 ## ⚠️ Troubleshooting (Xử lý sự cố thường gặp)
 
 * **Lỗi "Port already in use":** Do Tomcat đang chạy ngầm hoặc port mặc định (8080) bị chiếm dụng. -> Sử dụng chức năng **Config (7)** để đổi Port hoặc **Stop (2)** để dừng tiến trình cũ.
