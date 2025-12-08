@@ -3,8 +3,8 @@ setlocal EnableDelayedExpansion
 
 REM ==============================================================================
 REM   TOMCAT MANAGER - FULLSTACK EDITION (v3.4)
-REM   Author: Nguyen Quoc Anh
-REM   Description: Apache Tomcat Manager V3.4
+REM   Author: Fullstack Dev
+REM   Description: Fix loi tat console khi mo VS Code, tich hop Winget
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
