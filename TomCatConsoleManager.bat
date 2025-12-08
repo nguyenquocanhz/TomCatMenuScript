@@ -2,9 +2,9 @@
 setlocal EnableDelayedExpansion
 
 REM ==============================================================================
-REM   TOMCAT MANAGER - FULLSTACK EDITION (v3.4)
+REM   TOMCAT MANAGER - FULLSTACK EDITION (v3.5)
 REM   Author: Fullstack Dev
-REM   Description: Fix loi tat console khi mo VS Code, tich hop Winget
+REM   Description: Fix loi 'Label not found' & Clean Code
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
@@ -26,25 +26,26 @@ set "JAVA_STATUS=UNKNOWN"
 set "NEED_CONFIG=0"
 
 REM --- 3. LOGIC KIEM TRA FILE CAU HINH ---
-IF NOT EXIST "%CONFIG_FILE%" goto :CASE_MISSING_CONFIG
+REM [FIX] Xoa dau ':' thua trong lenh goto
+IF NOT EXIST "%CONFIG_FILE%" goto CASE_MISSING_CONFIG
 
 call :LOAD_CONFIG_FROM_JSON
 call :VALIDATE_TOMCAT_HOME
-IF !errorlevel! NEQ 0 goto :CASE_INVALID_CONFIG
+IF !errorlevel! NEQ 0 goto CASE_INVALID_CONFIG
 
 call :INIT_DEPENDENT_VARS
-goto :MAIN_MENU
+goto MAIN_MENU
 
 REM --- LABEL XU LY LOI CAU HINH ---
 :CASE_MISSING_CONFIG
     set "MSG_REASON=Chua tim thay file cau hinh data.json. Vui long thiet lap lan dau."
     set "NEED_CONFIG=1"
-    goto :UPDATE_PATH_FLOW
+    goto UPDATE_PATH_FLOW
 
 :CASE_INVALID_CONFIG
     set "MSG_REASON=Duong dan trong data.json khong ton tai tren may nay."
     set "NEED_CONFIG=1"
-    goto :UPDATE_PATH_FLOW
+    goto UPDATE_PATH_FLOW
 
 
 REM ==============================================================================
@@ -55,7 +56,7 @@ cls
 call :CHECK_JAVA_ENV
 
 echo %cCyan%============================================================%cWhite%
-echo    APACHE TOMCAT MANAGER %cGray%(v3.4 - Stable)%cWhite%
+echo    APACHE TOMCAT MANAGER %cGray%(v3.5 - Stable)%cWhite%
 echo %cCyan%============================================================%cWhite%
 echo.
 echo    %cGray%Tomcat Home:%cWhite% %TOMCAT_HOME%
@@ -204,10 +205,8 @@ REM ============================================================================
     if "%pdOpt%"=="2" goto SCAN_JSP_FILES
     if "%pdOpt%"=="3" (
         echo Dang mo VS Code...
-        REM [FIX] Dung 'call code' de tranh bi thoat script
         call code "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" >nul 2>&1
         if !errorlevel! NEQ 0 (
-             REM Fallback neu 'code' khong co trong path
              call :AUTO_SET_VSCODE_PATH
              call code "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" >nul 2>&1
         )
@@ -281,11 +280,9 @@ REM ============================================================================
     if "%faOpt%"=="2" (
         echo %cYellow%Opening in VS Code...%cWhite%
         
-        REM [FIX] Dung 'call code' de tranh bi thoat script
         call code "!SEL_FILE_PATH!" >nul 2>&1
         if !errorlevel! EQU 0 goto PROJ_DETAIL_MENU
         
-        REM Neu that bai, thu set path va goi lai
         call :AUTO_SET_VSCODE_PATH
         if !errorlevel! EQU 0 (
             call code "!SEL_FILE_PATH!"
@@ -298,7 +295,6 @@ REM ============================================================================
         set /p "askInstall=> (Y/N): "
         if /I "!askInstall!"=="Y" (
             call :ACTION_INSTALL_VSCODE
-            REM Cai xong thu mo lai
             call code "!SEL_FILE_PATH!" 
         ) else (
             echo Chuyen sang Notepad...
@@ -315,6 +311,29 @@ REM ============================================================================
     
     if "%faOpt%"=="0" goto SCAN_JSP_FILES
     goto FILE_ACTION_MENU
+
+:UPDATE_PATH_FLOW
+    cls
+    color 0E
+    echo %cYellow%============================================================%cWhite%
+    echo      CAU HINH DUONG DAN TOMCAT
+    echo %cYellow%============================================================%cWhite%
+    echo.
+    IF DEFINED MSG_REASON ( echo %cRed%[THONG BAO] %MSG_REASON%%cWhite% & echo. & set "MSG_REASON=" )
+    echo Duong dan hien tai (trong file): "%TOMCAT_HOME%"
+    echo.
+    if "%NEED_CONFIG%"=="1" ( echo [Goi y] Ban co the nhap 9 de tai Tomcat tu dong. & set /p "NEW_HOME=> Nhap Path moi (hoac 9 de Download): " ) else ( set /p "NEW_HOME=> Nhap Path moi (0 de Quay lai, 9 de Download): " )
+    set "NEW_HOME=!NEW_HOME:"=!"
+    if "!NEW_HOME!"=="9" goto ACTION_DOWNLOAD_TOMCAT
+    if "!NEW_HOME!"=="0" ( if "%NEED_CONFIG%"=="1" ( echo %cRed%[LOI] Can thiet lap path!%cWhite% & pause & goto UPDATE_PATH_FLOW ) else ( goto MAIN_MENU ) )
+    if not exist "!NEW_HOME!\bin\catalina.bat" ( echo. & echo %cRed%[LOI] Path khong hop le!%cWhite% & pause & goto UPDATE_PATH_FLOW )
+    echo.
+    set /p "NEW_PORT=> Nhap Port (Enter de dung %DEFAULT_PORT%): "
+    if "!NEW_PORT!"=="" set "NEW_PORT=%DEFAULT_PORT%"
+    call :SAVE_CONFIG_TO_JSON "!NEW_HOME!" "!NEW_PORT!"
+    echo. & echo %cGreen%[THANH CONG] Da cap nhat data.json!%cWhite%
+    set "TOMCAT_HOME=!NEW_HOME!" & set "TOMCAT_PORT=!NEW_PORT!"
+    call :INIT_DEPENDENT_VARS & pause & goto MAIN_MENU
 
 REM ==============================================================================
 REM   OTHER ACTIONS
@@ -417,29 +436,6 @@ REM ============================================================================
         exit /b 0
     )
     exit /b 1
-
-:UPDATE_PATH_FLOW
-    cls
-    color 0E
-    echo %cYellow%============================================================%cWhite%
-    echo      CAU HINH DUONG DAN TOMCAT
-    echo %cYellow%============================================================%cWhite%
-    echo.
-    IF DEFINED MSG_REASON ( echo %cRed%[THONG BAO] %MSG_REASON%%cWhite% & echo. & set "MSG_REASON=" )
-    echo Duong dan hien tai (trong file): "%TOMCAT_HOME%"
-    echo.
-    if "%NEED_CONFIG%"=="1" ( echo [Goi y] Ban co the nhap 9 de tai Tomcat tu dong. & set /p "NEW_HOME=> Nhap Path moi (hoac 9 de Download): " ) else ( set /p "NEW_HOME=> Nhap Path moi (0 de Quay lai, 9 de Download): " )
-    set "NEW_HOME=!NEW_HOME:"=!"
-    if "!NEW_HOME!"=="9" goto ACTION_DOWNLOAD_TOMCAT
-    if "!NEW_HOME!"=="0" ( if "%NEED_CONFIG%"=="1" ( echo %cRed%[LOI] Can thiet lap path!%cWhite% & pause & goto UPDATE_PATH_FLOW ) else ( goto MAIN_MENU ) )
-    if not exist "!NEW_HOME!\bin\catalina.bat" ( echo. & echo %cRed%[LOI] Path khong hop le!%cWhite% & pause & goto UPDATE_PATH_FLOW )
-    echo.
-    set /p "NEW_PORT=> Nhap Port (Enter de dung %DEFAULT_PORT%): "
-    if "!NEW_PORT!"=="" set "NEW_PORT=%DEFAULT_PORT%"
-    call :SAVE_CONFIG_TO_JSON "!NEW_HOME!" "!NEW_PORT!"
-    echo. & echo %cGreen%[THANH CONG] Da cap nhat data.json!%cWhite%
-    set "TOMCAT_HOME=!NEW_HOME!" & set "TOMCAT_PORT=!NEW_PORT!"
-    call :INIT_DEPENDENT_VARS & pause & goto MAIN_MENU
 
 :ACTION_START
     call :CHECK_JAVA_ENV
