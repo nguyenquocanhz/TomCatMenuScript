@@ -2,9 +2,9 @@
 setlocal EnableDelayedExpansion
 
 REM ==============================================================================
-REM   TOMCAT MANAGER - FULLSTACK EDITION (v3.5)
-REM   Author: Fullstack Dev
-REM   Description: Fix loi 'Label not found' & Clean Code
+REM   TOMCAT MANAGER - FULLSTACK EDITION (v4.5)
+REM   Author: Nguyen Quoc Anh (NQA TECH)
+REM   Description: A simple Windows Batch script to manage Apache Tomcat server
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
