@@ -485,7 +485,7 @@ REM ============================================================================
     if "%vChoice%"=="4" ( set "DL_VER=8.5.100" & set "DL_MAJOR=8" )
     if "%vChoice%"=="5" ( echo. & set /p "DL_MAJOR=> Major Ver: " & echo. & set /p "DL_VER=> Full Ver: " )
     if "!DL_VER!"=="" goto ACTION_DOWNLOAD_TOMCAT
-    set "DL_URL=https://dlcdn.apache.org/tomcat/tomcat-!DL_MAJOR!/v!DL_VER!/bin/apache-tomcat-!DL_VER!-windows-x64.zip"
+    set "DL_URL=https://archive.apache.org/dist/tomcat/tomcat-!DL_MAJOR!/v!DL_VER!/bin/apache-tomcat-!DL_VER!-windows-x64.zip"
     echo. & echo -------------------------------------------------- & echo URL: !DL_URL! & echo -------------------------------------------------- & echo.
     echo Nhap thu muc cai dat (VD: D:\Tools):
     set /p "INSTALL_DIR=> Install Location: "
