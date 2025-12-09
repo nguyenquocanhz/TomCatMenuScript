@@ -442,16 +442,24 @@ REM ============================================================================
     if !errorlevel! NEQ 0 ( echo. & echo %cRed%[LOI] Chua cai dat JAVA!%cWhite% & pause & goto MAIN_MENU )
     if "%SERVER_STATUS%"=="RUNNING" ( echo. & echo %cYellow%[INFO] Server dang chay roi!%cWhite% & pause & goto MAIN_MENU )
     cd /d "%TOMCAT_HOME%\bin" & echo. & echo %cGreen%Starting Server...%cWhite%
-    set "JAVA_HOME=%JAVA_HOME%" & call catalina.bat version & start "Apache Tomcat Log" call catalina.bat start
+    set "JAVA_HOME=%JAVA_HOME%" & call catalina.bat version & call catalina.bat start
     timeout /t 5 >nul & goto MAIN_MENU
-
+:ACTION_CATALINA_START
+    cd /d "%TOMCAT_HOME%\bin" & echo. & echo %cGreen%Starting Server...%cWhite%
+    set "JAVA_HOME=%JAVA_HOME%" & call catalina.bat run
+    timeout /t 5 >nul & goto MAIN_MENU
 :ACTION_STOP
     echo. & echo %cRed%Stopping Server...%cWhite%
     cd /d "%TOMCAT_HOME%\bin" & set "JAVA_HOME=%JAVA_HOME%" & call shutdown.bat
     timeout /t 3 >nul & goto MAIN_MENU
 
 :ACTION_RESTART
-    call :ACTION_STOP & call :ACTION_START & goto MAIN_MENU
+    echo. & echo %cYellow%Restarting Server...%cWhite%
+    cd /d "%TOMCAT_HOME%\bin" & set "JAVA_HOME=%JAVA_HOME%" & call shutdown.bat
+    timeout /t 3 >nul
+    cd /d "%TOMCAT_HOME%\bin" & echo. & echo %cGreen%Starting Server...%cWhite%
+    set "JAVA_HOME=%JAVA_HOME%" & call catalina.bat version & call catalina.bat start
+    timeout /t 3 >nul & goto MAIN_MENU
 
 :ACTION_CREATE_PROJECT
     echo. & echo %cCyan%--- NEW PROJECT ---%cWhite%
