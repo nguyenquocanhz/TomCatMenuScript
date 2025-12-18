@@ -179,7 +179,7 @@ REM ============================================================================
     echo %cCyan%============================================================%cWhite%
     echo.
     echo    1. Mo Trang Chu (Browser)
-    echo    2. Compile Servlets (.java -> .class)%cWhite%
+    echo    2. Compile Servlets
     echo    3. Quan ly file JSP
     echo    4. Mo VS Code
     echo    5. Mo Explorer
