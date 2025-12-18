@@ -2,9 +2,9 @@
 setlocal EnableDelayedExpansion
 
 REM ==============================================================================
-REM   TOMCAT MANAGER - FULLSTACK EDITION (v5.0 - Servlet Support)
+REM   TOMCAT MANAGER - FULLSTACK EDITION (v5.2 - Confirmation Support)
 REM   Author: Nguyen Quoc Anh (NQA TECH) & Gemini
-REM   Description: Batch script to manage Tomcat & Auto-build Java Servlets
+REM   Description: Batch script with case-insensitive y/N confirmation
 REM ==============================================================================
 
 REM --- 1. KHOI TAO MA MAU (ANSI COLORS) ---
@@ -23,7 +23,6 @@ set "TOMCAT_PORT=%DEFAULT_PORT%"
 set "TOMCAT_HOME="
 set "SERVER_STATUS=UNKNOWN"
 set "JAVA_STATUS=UNKNOWN"
-set "NEED_CONFIG=0"
 
 IF NOT EXIST "%CONFIG_FILE%" goto CASE_MISSING_CONFIG
 call :LOAD_CONFIG_FROM_JSON
@@ -34,12 +33,10 @@ goto MAIN_MENU
 
 :CASE_MISSING_CONFIG
     set "MSG_REASON=Chua tim thay file cau hinh data.json. Vui long thiet lap lan dau."
-    set "NEED_CONFIG=1"
     goto UPDATE_PATH_FLOW
 
 :CASE_INVALID_CONFIG
     set "MSG_REASON=Duong dan trong data.json khong ton tai tren may nay."
-    set "NEED_CONFIG=1"
     goto UPDATE_PATH_FLOW
 
 REM ==============================================================================
@@ -49,7 +46,7 @@ REM ============================================================================
 cls
 call :CHECK_JAVA_ENV
 echo %cCyan%============================================================%cWhite%
-echo    APACHE TOMCAT MANAGER %cYellow%(v5.0 - Servlet Edition)%cWhite%
+echo    APACHE TOMCAT MANAGER %cYellow%(v5.2 - Confirmation Edition)%cWhite%
 echo %cCyan%============================================================%cWhite%
 echo.
 echo    %cGray%Tomcat Home:%cWhite% %TOMCAT_HOME%
@@ -57,7 +54,7 @@ echo    %cGray%Tomcat Port:%cWhite% %TOMCAT_PORT%
 if "%JAVA_STATUS%"=="OK" (
     echo    %cGray%Java Home:  %cWhite% %JAVA_HOME% %cGreen%[OK]%cWhite%
 ) else (
-    echo    %cGray%Java Home:  %cWhite% %cRed%[MISSING] - Can not start server!%cWhite%
+    echo    %cGray%Java Home:  %cWhite% %cRed%[MISSING] - Vui long kiem tra JDK!%cWhite%
 )
 echo.
 netstat -ano | findStr ":%TOMCAT_PORT% " | findStr "LISTENING" >nul
@@ -76,15 +73,12 @@ echo    2. Tat Server (Stop)        5. %cYellow%Quan ly Project (Build Servlet, 
 echo    3. Khoi dong lai (Restart)  6. Mo thu muc Webapps
 echo.
 echo    7. Mo Localhost (Root)      8. Cau hinh lai duong dan Tomcat
-echo    9. Download/Cai dat Tomcat  J. Download/Cai dat Oracle JDK
-echo    V. Install VS Code          0. Thoat
+echo    0. Thoat
 echo.
 echo %cGray%------------------------------------------------------------%cWhite%
 
 set "opt="
 set /p "opt=> Chon chuc nang: "
-if /I "%opt%"=="J" goto ACTION_INSTALL_JAVA
-if /I "%opt%"=="V" goto ACTION_INSTALL_VSCODE
 if "%opt%"=="1" goto ACTION_START
 if "%opt%"=="2" goto ACTION_STOP
 if "%opt%"=="3" goto ACTION_RESTART
@@ -93,13 +87,100 @@ if "%opt%"=="5" goto ACTION_SCAN_OPEN
 if "%opt%"=="6" start "" "%WEBAPPS_FOLDER%" & goto MAIN_MENU
 if "%opt%"=="7" start "" "%LOCALHOST_URL%" & goto MAIN_MENU
 if "%opt%"=="8" goto UPDATE_PATH_FLOW
-if "%opt%"=="9" goto ACTION_DOWNLOAD_TOMCAT
 if "%opt%"=="0" exit
 goto MAIN_MENU
 
 REM ==============================================================================
-REM   CORE FUNCTIONS
+REM   PROJECT ACTIONS
 REM ==============================================================================
+
+:ACTION_SCAN_OPEN
+    cls
+    echo %cCyan%--- CHON PROJECT DE LAM VIEC ---%cWhite%
+    set "count=0"
+    for /d %%D in ("%WEBAPPS_FOLDER%\*") do (
+        set /a count+=1
+        set "PROJ[!count!]=%%~nxD"
+        echo    !count!. %%~nxD
+    )
+    if !count! EQU 0 ( echo %cRed%Khong tim thay project.%cWhite% & pause & goto MAIN_MENU )
+    echo    0. Quay lai
+    set /p "pChoice=> Chon: "
+    if "%pChoice%"=="0" goto MAIN_MENU
+    set "SELECTED_PROJ=!PROJ[%pChoice%]!"
+    goto PROJ_DETAIL_MENU
+
+:PROJ_DETAIL_MENU
+    cls
+    echo %cCyan%--- PROJECT: %cYellow%!SELECTED_PROJ!%cWhite% ---
+    echo.
+    echo    1. Mo Browser (URL)         4. Mo VS Code
+    echo    2. %cGreen%Build Java Servlet%cWhite%      5. Mo Explorer
+    echo    3. Quan ly file JSP         0. Quay lai
+    echo.
+    set /p "pdOpt=> Lua chon: "
+    if "%pdOpt%"=="1" start "" "%LOCALHOST_URL%/!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
+    if "%pdOpt%"=="2" goto ACTION_SELECT_JAVA_FILE
+    if "%pdOpt%"=="3" goto SCAN_JSP_FILES
+    if "%pdOpt%"=="4" call code "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
+    if "%pdOpt%"=="5" start "" "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
+    if "%pdOpt%"=="0" goto ACTION_SCAN_OPEN
+    goto PROJ_DETAIL_MENU
+
+:ACTION_SELECT_JAVA_FILE
+    cls
+    echo %cYellow%--- LUA CHON FILE JAVA DE BUILD ---%cWhite%
+    set "PROJ_PATH=%WEBAPPS_FOLDER%\!SELECTED_PROJ!"
+    set "jFileCount=0"
+    for /r "%PROJ_PATH%" %%f in (*.java) do (
+        set /a jFileCount+=1
+        set "JAVA_F[!jFileCount!]=%%f"
+        set "JAVA_N[!jFileCount!]=%%~nxf"
+        echo    !jFileCount!. %%~nxf
+    )
+    if !jFileCount! EQU 0 ( echo %cRed%Khong tim thay file .java.%cWhite% & pause & goto PROJ_DETAIL_MENU )
+    echo.
+    echo    A. Build TAT CA (All)
+    echo    0. Huy bo
+    echo.
+    set /p "fChoice=> Nhap so thu tu (hoac A): "
+    if /I "%fChoice%"=="0" goto PROJ_DETAIL_MENU
+    if /I "%fChoice%"=="A" (
+        call :CONFIRM_DIALOG "Ban co chac muon build TAT CA file Java?"
+        if errorlevel 1 goto ACTION_SELECT_JAVA_FILE
+        goto ACTION_BUILD_ALL
+    )
+    set "SEL_FILE_PATH=!JAVA_F[%fChoice%]!"
+    set "SEL_FILE_NAME=!JAVA_N[%fChoice%]!"
+    if "!SEL_FILE_PATH!"=="" ( echo %cRed%Loi lua chon!%cWhite% & pause & goto ACTION_SELECT_JAVA_FILE )
+    call :COMPILE_LOGIC "!SEL_FILE_PATH!" "!SEL_FILE_NAME!"
+    pause & goto PROJ_DETAIL_MENU
+
+:ACTION_BUILD_ALL
+    echo %cYellow%Dang build tat ca file .java...%cWhite%
+    for /L %%i in (1,1,!jFileCount!) do ( call :COMPILE_LOGIC "!JAVA_F[%%i]!" "!JAVA_N[%%i]!" )
+    pause & goto PROJ_DETAIL_MENU
+
+:COMPILE_LOGIC
+    set "F_PATH=%~1"
+    set "F_NAME=%~2"
+    set "BIN_PATH=%WEBAPPS_FOLDER%\!SELECTED_PROJ!\WEB-INF\classes"
+    if not exist "%BIN_PATH%" mkdir "%BIN_PATH%"
+    echo %cGray%Compiling: %F_NAME%...%cWhite%
+    "%JAVA_HOME%\bin\javac" -encoding UTF-8 -cp "%TOMCAT_HOME%\lib\*;%WEBAPPS_FOLDER%\!SELECTED_PROJ!\WEB-INF\lib\*" -d "%BIN_PATH%" "%F_PATH%"
+    if !errorlevel! EQU 0 ( echo %cGreen%[SUCCESS]%cWhite% %F_NAME% ) else ( echo %cRed%[FAILED]%cWhite% %F_NAME% )
+    exit /b
+
+REM ==============================================================================
+REM   SYSTEM CORE
+REM ==============================================================================
+
+:CONFIRM_DIALOG
+    set "conf="
+    set /p "conf=%cYellow%[?] %~1 (y/N): %cWhite%"
+    if /I "%conf%"=="y" exit /b 0
+    echo %cGray%Thao tac da duoc huy.%cWhite%
+    exit /b 1
 
 :CHECK_JAVA_ENV
     if "%JAVA_HOME%"=="" ( set "JAVA_STATUS=MISSING" & exit /b 1 )
@@ -128,127 +209,9 @@ REM ============================================================================
     title Tomcat Manager - %TOMCAT_HOME%
     exit /b 0
 
-REM ==============================================================================
-REM   PROJECT ACTIONS
-REM ==============================================================================
-
-:ACTION_CREATE_PROJECT
-    echo. & echo %cCyan%--- NEW SERVLET PROJECT ---%cWhite%
-    set /p projName="> Project Name: "
-    if "%projName%"=="" goto MAIN_MENU
-    set "TARGET_P=%WEBAPPS_FOLDER%\%projName%"
-    if exist "%TARGET_P%" ( echo %cRed%Project exists!%cWhite% & pause & goto MAIN_MENU )
-    
-    mkdir "%TARGET_P%"
-    mkdir "%TARGET_P%\WEB-INF\classes"
-    mkdir "%TARGET_P%\WEB-INF\lib"
-    
-    (
-    echo ^<h1^>Project: %projName%^</h1^>
-    echo ^<p^>Created via Tomcat Manager Pro^</p^>
-    echo ^<a href="hello"^>Test Hello Servlet^</a^>
-    ) > "%TARGET_P%\index.jsp"
-    
-    echo %cGreen%[OK] Project structure created!%cWhite%
-    explorer "%TARGET_P%"
-    goto MAIN_MENU
-
-:ACTION_SCAN_OPEN
-    cls
-    echo %cCyan%============================================================%cWhite%
-    echo      CHON PROJECT DE LAM VIEC
-    echo %cCyan%============================================================%cWhite%
-    set "count=0"
-    for /d %%D in ("%WEBAPPS_FOLDER%\*") do (
-        set /a count+=1
-        set "PROJ[!count!]=%%~nxD"
-        echo    !count!. %%~nxD
-    )
-    echo.
-    if !count! EQU 0 ( echo %cRed%Khong tim thay project.%cWhite% & pause & goto MAIN_MENU )
-    echo    0. Quay lai
-    set /p "pChoice=> Chon: "
-    if "%pChoice%"=="0" goto MAIN_MENU
-    set "SELECTED_PROJ=!PROJ[%pChoice%]!"
-    goto PROJ_DETAIL_MENU
-
-:PROJ_DETAIL_MENU
-    cls
-    echo %cCyan%============================================================%cWhite%
-    echo      PROJECT: %cYellow%!SELECTED_PROJ!%cWhite%
-    echo %cCyan%============================================================%cWhite%
-    echo.
-    echo    1. Mo Trang Chu (Browser)
-    echo    2. Compile Servlets
-    echo    3. Quan ly file JSP
-    echo    4. Mo VS Code
-    echo    5. Mo Explorer
-    echo    0. Quay lai
-    echo.
-    set /p "pdOpt=> Lua chon: "
-    if "%pdOpt%"=="1" start "" "%LOCALHOST_URL%/!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
-    if "%pdOpt%"=="2" goto ACTION_BUILD_SERVLET
-    if "%pdOpt%"=="3" goto SCAN_JSP_FILES
-    if "%pdOpt%"=="4" call code "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
-    if "%pdOpt%"=="5" start "" "%WEBAPPS_FOLDER%\!SELECTED_PROJ!" & goto PROJ_DETAIL_MENU
-    if "%pdOpt%"=="0" goto ACTION_SCAN_OPEN
-    goto PROJ_DETAIL_MENU
-
-:ACTION_BUILD_SERVLET
-    cls
-    echo %cYellow%--- COMPILING SERVLETS ---%cWhite%
-    set "PROJ_PATH=%WEBAPPS_FOLDER%\!SELECTED_PROJ!"
-    set "BIN_PATH=%PROJ_PATH%\WEB-INF\classes"
-    if not exist "%BIN_PATH%" mkdir "%BIN_PATH%"
-    
-    echo Dang quet file .java trong: !SELECTED_PROJ!
-    set "foundJava=0"
-    for /r "%PROJ_PATH%" %%f in (*.java) do (
-        set "foundJava=1"
-        echo %cGray%Compiling: %%~nxf...%cWhite%
-        javac -cp "%TOMCAT_HOME%\lib\*;%PROJ_PATH%\WEB-INF\lib\*" -d "%BIN_PATH%" "%%f"
-        if !errorlevel! EQU 0 (
-            echo %cGreen%[SUCCESS] %%~nxf%cWhite%
-        ) else (
-            echo %cRed%[FAILED] %%~nxf%cWhite%
-        )
-    )
-    if %foundJava% EQU 0 echo %cRed%Khong tim thay file .java nao.%cWhite%
-    echo.
-    pause
-    goto PROJ_DETAIL_MENU
-
-:SCAN_JSP_FILES
-    cls
-    echo %cCyan%--- JSP FILES: !SELECTED_PROJ! ---%cWhite%
-    set "jCount=0"
-    set "TARGET_DIR=%WEBAPPS_FOLDER%\!SELECTED_PROJ!"
-    for /R "%TARGET_DIR%" %%f in (*.jsp) do (
-        set /a jCount+=1
-        set "FULL_PATH_!jCount!=%%f"
-        set "REL_PATH=%%f"
-        set "REL_PATH=!REL_PATH:%WEBAPPS_FOLDER%\=!"
-        set "REL_PATH=!REL_PATH:\=/!"
-        set "URL_PATH_!jCount!=!REL_PATH!"
-        echo    !jCount!. %%~nxf %cGray%(!REL_PATH!^)%cWhite%
-    )
-    echo.
-    if !jCount! EQU 0 ( pause & goto PROJ_DETAIL_MENU )
-    echo    0. Quay lai
-    set /p "jOpt=> Chon: "
-    if "%jOpt%"=="0" goto PROJ_DETAIL_MENU
-    start "" "%LOCALHOST_URL%/!URL_PATH_%jOpt%!"
-    goto SCAN_JSP_FILES
-
-REM ==============================================================================
-REM   SYSTEM ACTIONS (KEEP ORIGINAL LOGIC)
-REM ==============================================================================
-
 :UPDATE_PATH_FLOW
     cls
-    color 0E
     echo %cYellow%--- CAU HINH TOMCAT ---%cWhite%
-    if defined MSG_REASON echo %cRed%[!] %MSG_REASON%%cWhite%
     set /p "NEW_HOME=> Nhap Path Tomcat (VD: C:\tomcat): "
     set "NEW_HOME=!NEW_HOME:"=!"
     if not exist "!NEW_HOME!\bin\catalina.bat" ( echo Path loi! & pause & goto UPDATE_PATH_FLOW )
@@ -257,32 +220,18 @@ REM ============================================================================
     goto MAIN_MENU
 
 :ACTION_START
-    if "%SERVER_STATUS%"=="RUNNING" ( echo Server is running! & pause & goto MAIN_MENU )
-    cd /d "%TOMCAT_HOME%\bin" & call catalina.bat start
-    timeout /t 5 >nul & goto MAIN_MENU
-
-:ACTION_STOP
-    cd /d "%TOMCAT_HOME%\bin" & call shutdown.bat
-    timeout /t 3 >nul & goto MAIN_MENU
-
-:ACTION_RESTART
-    call :ACTION_STOP
-    call :ACTION_START
+    cd /d "%TOMCAT_HOME%\bin" & start catalina.bat run
     goto MAIN_MENU
 
-:ACTION_INSTALL_JAVA
-    cls
-    echo %cCyan%--- INSTALL JDK ---%cWhite%
-    set /p "J_VER=> Version (17/21/25): "
-    set /p "J_DIR=> Location: "
-    set "J_DIR=!J_DIR:"=!"
-    mkdir "!J_DIR!" 2>nul
-    set "URL=https://download.oracle.com/java/!J_VER!/latest/jdk-!J_VER!_windows-x64_bin.zip"
-    powershell -Command "Invoke-WebRequest -Uri '!URL!' -OutFile '!J_DIR!\jdk.zip'"
-    powershell -Command "Expand-Archive -Path '!J_DIR!\jdk.zip' -DestinationPath '!J_DIR!' -Force"
-    del "!J_DIR!\jdk.zip"
-    echo Install Done! & pause & goto MAIN_MENU
+:ACTION_STOP
+    call :CONFIRM_DIALOG "Ban co chac chan muon tat Server?"
+    if errorlevel 1 goto MAIN_MENU
+    cd /d "%TOMCAT_HOME%\bin" & call shutdown.bat
+    goto MAIN_MENU
 
-:ACTION_INSTALL_VSCODE
-    winget install -e --id Microsoft.VisualStudioCode --source winget
-    pause & goto MAIN_MENU
+:ACTION_RESTART
+    call :CONFIRM_DIALOG "Ban co chac chan muon khoi dong lai Server?"
+    if errorlevel 1 goto MAIN_MENU
+    call :ACTION_STOP
+    timeout /t 2 >nul
+    goto ACTION_START
