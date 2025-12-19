@@ -47,7 +47,7 @@ Chạy file `TomCatMenuV7.cmd` (v9 Core) để vào menu chính.
 -   **[S] Config Paths**: Cấu hình đường dẫn/Port.
 -   **[C] Config Files**: Mở nhanh các file cấu hình.
 -   **[R] Refresh**: Làm mới trạng thái Server.
--   **[D] Download**: Tải MySQL / JDBC Driver.
+-   **[D] Download**: Tải MySQL / JDBC Driver / Oracle JDK.
 
 #### Tomcat Server
 -   **[1] Start**: Bật Server.

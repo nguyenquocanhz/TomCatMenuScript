@@ -404,13 +404,44 @@ REM ============================================================================
 :DOWNLOAD_MENU
     cls
     echo %cCyan%--- DOWNLOAD TOOLS ---%cWhite%
-    echo    1. Tai MySQL JDBC Driver (Zip)
+    echo    1. Tai MySQL JDBC Driver (Maven)
     echo    2. Tai MySQL Server (Zip)
+    echo    3. Tai Java JDK (21/8)
     echo    0. Quay lai
     set /p "dlo=> Chon: "
     if "%dlo%"=="1" goto :ACT_DL_JDBC
     if "%dlo%"=="2" goto :ACT_DL_MYSQL_SERVER
+    if "%dlo%"=="3" goto :ACT_DL_JDK
     goto :MAIN_MENU
+
+:ACT_DL_JDK
+    cls
+    echo %cCyan%--- TAI ORACLE JDK (LATEST) ---%cWhite%
+    set /p "v=> Phien ban (17/21/25): "
+    if "%v%"=="" set "v=21"
+    
+    set "d=C:\java"
+    set /p "d=> Location (Enter=%d%): "
+    set "d=!d:"=!"
+    
+    if not exist "!d!" mkdir "!d!"
+    set "URL=https://download.oracle.com/java/!v!/latest/jdk-!v!_windows-x64_bin.zip"
+    set "ZIP_FILE=!d!\jdk.zip"
+    
+    echo 1. Dang tai JDK !v! tu Oracle...
+    powershell -Command "Start-BitsTransfer -Source '%URL%' -Destination '%ZIP_FILE%'"
+    
+    if not exist "!ZIP_FILE!" ( echo %cRed%Tai that bai!%cWhite% & pause & goto :MAIN_MENU )
+    
+    echo 2. Dang giai nen...
+    powershell -Command "Expand-Archive -Path '!ZIP_FILE!' -DestinationPath '!d!' -Force"
+    del "!ZIP_FILE!"
+    
+    echo %cGreen%Cai dat Hoan tat!%cWhite%
+    echo Thu muc: !d!
+    echo.
+    echo %cYellow%[TIP] Set bien moi truong: setx JAVA_HOME "!d!\jdk-!v!..."%cWhite%
+    pause & goto :MAIN_MENU
 
 :ACT_DL_MYSQL_SERVER
     cls
