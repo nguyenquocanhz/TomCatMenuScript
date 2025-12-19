@@ -1,100 +1,110 @@
-# 🚀 Apache Tomcat Manager – Fullstack Edition (v5.2)
+# 🚀 Apache Tomcat Manager – Fullstack Edition (v9)
 
-**Apache Tomcat Manager CLI** là một công cụ mạnh mẽ, gọn nhẹ dành cho lập trình viên **Java Fullstack**. Công cụ hỗ trợ tự động hóa toàn bộ quy trình từ cài đặt môi trường, quản lý Server cho đến biên dịch (Build) các **Java Servlet** mà không cần sử dụng các IDE nặng nề như IntelliJ Ultimate hay Eclipse.
+**Apache Tomcat Manager CLI v9** (Cyber Neon Ultra) là phiên bản hoàn thiện nhất, tập trung vào **độ ổn định tuyệt đối (Robustness)** và trải nghiệm người dùng.
 
 ---
 
-## ✨ Tính Năng Nổi Bật
+## ✨ Tính Năng Mới (Update v9)
 
-### 1. Quản Lý Server Toàn Diện
+### 💎 Độ Ổn Định & Tự Động Hóa (Stability)
+-   **Smart MySQL Start**: Tự động phát hiện lỗi thiếu Data hoặc thiếu Config.
+    -   *Missing Data?* -> Tự động chạy `initialize-insecure`.
+    -   *Missing my.ini?* -> Tự động tạo lại file config chuẩn.
+    -   **Kết quả**: Không bao giờ bị crash hoặc tắt tool đột ngột.
+-   **Bulk Build System**: Cơ chế Build mới (`javac @sources.txt`) giúp compile dự án lớn siêu tốc, không lo lỗi phụ thuộc file.
+-   **Crash Config Fix**: Tích hợp `pushd/popd` để xử lý đường dẫn an toàn, không bị lỗi "Can't change dir" khi tên user có khoảng trắng.
 
-- **Start / Stop / Restart**: Điều khiển Tomcat nhanh gọn chỉ bằng phím số.
-- **Auto-Detect Status**: Tự động kiểm tra trạng thái Online/Offline của Server dựa trên Port.
-- **Log Monitor**: Theo dõi log chạy của Server trong cửa sổ riêng biệt.
+### 🎨 Giao Diện & Tiện Ích (UX)
+-   **Project Menu 2.0**: Giao diện quản lý Project dạng danh sách dọc, trực quan.
+-   **Smart Editor**: Tự động phát hiện **VS Code**:
+    -   Nếu có: Mở project bằng VS Code.
+    -   Nếu không: Mở Explorer (Sẵn sàng cho Notepad/IntelliJ).
+-   **Config Manager**: Menu cấu hình XAMPP-style (Phím **C**) để sửa `server.xml`, `my.ini` nhanh.
 
-### 2. Selective Build System (Mới v5.2) 🛠️
-
-- **Biên dịch tùy chọn**: Chỉ build đúng file `.java` vừa chỉnh sửa, không cần build lại toàn bộ project.
-- **Build All**: Biên dịch toàn bộ source chỉ với phím **A**.
-- **Smart Javac**: Tự động nhận diện `JAVA_HOME`, xử lý triệt để lỗi *"javac is not recognized"*.
-- **UTF-8 Encoding**: Đảm bảo source code có tiếng Việt không bị lỗi font sau khi biên dịch.
-
-### 3. Xác Nhận An Toàn (Smart Confirmation) 🛡️
-
-- **y/N Dialog**: Hộp thoại xác nhận trước các thao tác quan trọng (Stop, Restart, Build hàng loạt).
-- **Case-Insensitive**: Chấp nhận cả `y` và `Y`, thao tác nhanh và linh hoạt.
-
-### 4. Khởi Tạo Cấu Trúc Tự Động
-
-- Tự động sinh cấu trúc chuẩn **Servlet/JSP**: `WEB-INF`, `classes`, `lib`.
-- Tạo sẵn `index.jsp` và cấu hình cơ bản để chạy ngay.
+### 🚀 Hệ Thống Core
+-   **BitsTransfer**: Tải MySQL/JDBC bằng giao thức native của Windows (Nhanh, không cần User-Agent).
+-   **Cloud Mirror**: Server tải MySQL riêng (`cloud.nguyenquocanh.io.vn`) đảm bảo tốc độ cao.
 
 ---
 
 ## 🛠 Yêu Cầu Hệ Thống
 
-- **Hệ điều hành**: Windows 10 / 11
-- **Java JDK**: Đã cấu hình biến môi trường `JAVA_HOME`
-- **Apache Tomcat**: 9 / 10 / 11 (tự động tải nếu chưa có)
+-   **OS**: Windows 10 / 11
+-   **Java**: JDK 8+ (Đã cài biến môi trường `JAVA_HOME`)
+-   **Tomcat**: Tự động tải hoặc dùng bản có sẵn.
+-   **MySQL**: Tự động tải bản Portable 9.4.0 (Nếu chưa có).
 
 ---
 
 ## 🚀 Hướng Dẫn Sử Dụng
 
 ### 1. Khởi động
+Chạy file `TomCatMenuV7.cmd` (v9 Core) để vào menu chính.
 
-```bat
-TomCatMenuV5.bat
-```
+### 2. Menu Chức Năng (KeyMap)
 
-### 2. Cấu hình lần đầu
+#### Hệ Thống
+-   **[S] Config Paths**: Cấu hình đường dẫn/Port.
+-   **[C] Config Files**: Mở nhanh các file cấu hình.
+-   **[R] Refresh**: Làm mới trạng thái Server.
+-   **[D] Download**: Tải MySQL / JDBC Driver.
 
-- Nhập đường dẫn Tomcat hiện có **hoặc**
-- Chọn tải Tomcat tự động theo hướng dẫn trong menu
+#### Tomcat Server
+-   **[1] Start**: Bật Server.
+-   **[2] Stop**: Tắt Server.
+-   **[4] Logs**: Xem log console.
+-   **[5] User Manager**: Thêm user admin vào `tomcat-users.xml`.
 
-### 3. Biên dịch Java Servlet
+#### MySQL Database (Smart Mode)
+-   **[M1] Start**: Bật MySQL (Tự động Init/Repair nếu cần).
+-   **[M5] Auto Lab 13**: Tạo DB `lab13_jdbc` và bảng `users`.
+-   **[M6] Backup DB**: Xuất file `.sql`.
+-   **[M7] Restore DB**: Nhập dữ liệu từ file `.sql`.
 
-1. Nhấn **5** – Quản lý Project
-2. Chọn Project cần thao tác
-3. Nhấn **2** – Build Java Servlet
-4. Chọn số thứ tự file `.java` cần build
-
-### 4. Kiểm tra kết quả
-
-- File `.class` sẽ được tự động copy vào:
-
-```
-WEB-INF/classes
-```
-
----
-
-## 📂 Cấu Trúc Project Chuẩn
-
-```text
-webapps/
-└── YourProject/
-    ├── WEB-INF/
-    │   ├── classes/    # File thực thi (.class)
-    │   ├── lib/        # Thư viện bổ sung (.jar)
-    │   └── web.xml     # Cấu hình Deployment
-    └── index.jsp       # Giao diện Web
-```
+#### Project Workspace
+-   **[6] New Project**: Tạo Project mới (Servlet/JDBC Template).
+-   **[7] Scan Projects**: Quản lý Project (Build, Edit VSCode, Browser).
 
 ---
 
-## 📦 Hợp Tác & Góp Ý
+## � Kịch Bản Mẫu (Step-by-Step)
 
-Dự án được xây dựng với mục tiêu hỗ trợ cộng đồng học tập **Java Web** theo hướng thực tế, nhẹ, và dễ triển khai.
+Quy trình chuẩn để làm bài Lab (VD: Lab 13 - JDBC):
 
-Mọi đóng góp về tính năng mới, cải tiến hoặc báo lỗi vui lòng liên hệ qua repository.
+**B1: Chuẩn bị môi trường**
+1.  Chọn **[D] Download** -> Tải MySQL (2) và JDBC Driver (1).
+2.  Chọn **[M1] Start MySQL**. (Lần đầu sẽ mất 20s để Init).
+3.  Chọn **[M5] Auto Setup Lab13** -> Tạo sẵn database `lab13_jdbc` và bảng `users`.
+
+**B2: Tạo Project**
+1.  Chọn **[6] New Project** -> Nhập tên (VD: `Lab13`).
+2.  Chọn Template **2. JDBC Template**.
+    -   *Script sẽ tự copy thư viện mysql-connector.jar vào lib cho bạn.*
+
+**B3: Code & Build**
+1.  Chọn **[7] Scan Projects** -> Chọn `Lab13`.
+2.  Chọn **[3] Edit Source** (Mở VS Code). Sửa file `TestDB.java`.
+3.  Quay lại menu, Chọn **[1] Build**. (Chờ báo *Build Success*).
+
+**B4: Chạy thử**
+1.  Về Menu chính, chọn **[3] Restart Tomcat**.
+2.  Vào lại **[7] Scan** -> `Lab13` -> **[2] Open Browser**.
+3.  Thêm `/testdb` vào link trên trình duyệt để test kết nối.
 
 ---
 
-## 👤 Tác Giả
+## �🔧 Troubleshooting (Sửa lỗi thường gặp)
 
-**Nguyễn Quốc Anh (NQA TECH)**  
-Gemini AI Assistant
+**1. Lỗi "Can't change dir" khi start MySQL?**
+-   **Đã Fix ở v9**: Script tự động xử lý đường dẫn có dấu cách.
 
-Chúc bạn có những trải nghiệm lập trình hiệu quả và thú vị cùng Apache Tomcat Manager CLI 🚀
+**2. Tool bị tắt khi ấn Start MySQL?**
+-   **Đã Fix ở v9**: Script đã tách logic Auto-Init ra khỏi khối lệnh gây lỗi.
 
+---
+
+## 👤 Tác Giả & Phiên Bản
+
+**Phát triển bởi**: Nguyễn Quốc Anh (NQA TECH) & Gemini AI
+**Phiên bản hiện tại**: 9.0.0 (Cyber Neon Ultra)
+**Update**: 19/12/2025
