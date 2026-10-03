@@ -1,110 +1,129 @@
-# 🚀 Apache Tomcat Manager – Fullstack Edition (v9)
+# 🚀 Apache Tomcat Manager – Fullstack Edition (v10)
 
-**Apache Tomcat Manager CLI v9** (Cyber Neon Ultra) là phiên bản hoàn thiện nhất, tập trung vào **độ ổn định tuyệt đối (Robustness)** và trải nghiệm người dùng.
+**Apache Tomcat Manager CLI** (Cyber Neon) là menu dòng lệnh cho Windows giúp sinh viên làm lab Java Web: quản lý Tomcat, MySQL portable, tạo và build project Servlet/JDBC mà không cần IDE.
 
----
-
-## ✨ Tính Năng Mới (Update v9)
-
-### 💎 Độ Ổn Định & Tự Động Hóa (Stability)
--   **Smart MySQL Start**: Tự động phát hiện lỗi thiếu Data hoặc thiếu Config.
-    -   *Missing Data?* -> Tự động chạy `initialize-insecure`.
-    -   *Missing my.ini?* -> Tự động tạo lại file config chuẩn.
-    -   **Kết quả**: Không bao giờ bị crash hoặc tắt tool đột ngột.
--   **Bulk Build System**: Cơ chế Build mới (`javac @sources.txt`) giúp compile dự án lớn siêu tốc, không lo lỗi phụ thuộc file.
--   **Crash Config Fix**: Tích hợp `pushd/popd` để xử lý đường dẫn an toàn, không bị lỗi "Can't change dir" khi tên user có khoảng trắng.
-
-### 🎨 Giao Diện & Tiện Ích (UX)
--   **Project Menu 2.0**: Giao diện quản lý Project dạng danh sách dọc, trực quan.
--   **Smart Editor**: Tự động phát hiện **VS Code**:
-    -   Nếu có: Mở project bằng VS Code.
-    -   Nếu không: Mở Explorer (Sẵn sàng cho Notepad/IntelliJ).
--   **Config Manager**: Menu cấu hình XAMPP-style (Phím **C**) để sửa `server.xml`, `my.ini` nhanh.
-
-### 🚀 Hệ Thống Core
--   **BitsTransfer**: Tải MySQL/JDBC bằng giao thức native của Windows (Nhanh, không cần User-Agent).
--   **Cloud Mirror**: Server tải MySQL riêng (`cloud.nguyenquocanh.io.vn`) đảm bảo tốc độ cao.
+![Main Dashboard](TomCatMenu.PNG)
 
 ---
 
 ## 🛠 Yêu Cầu Hệ Thống
 
--   **OS**: Windows 10 / 11
--   **Java**: JDK 8+ (Đã cài biến môi trường `JAVA_HOME`)
--   **Tomcat**: Tự động tải hoặc dùng bản có sẵn.
--   **MySQL**: Tự động tải bản Portable 9.4.0 (Nếu chưa có).
+-   **OS**: Windows 10 (1803 trở lên) / 11
+-   **Java**: JDK 11+ cho Tomcat 10.1, JDK 17+ cho Tomcat 11. Chưa có thì tải ngay trong tool (**[D] → 3**).
+-   **Tomcat / MySQL / JDBC Driver**: dùng bản có sẵn hoặc tải trong tool (**[D]**).
 
 ---
 
 ## 🚀 Hướng Dẫn Sử Dụng
 
 ### 1. Khởi động
-Chạy file `TomCatMenuV7.cmd` (v9 Core) để vào menu chính.
+Chạy file **`TomCatMenu.cmd`**. Lần đầu tool sẽ hỏi đường dẫn Tomcat; nếu chưa có Tomcat cứ Enter bỏ qua rồi bấm **[D]** để tải.
+
+Cấu hình được lưu vào `config.ini` nằm cạnh file script:
+
+```ini
+TOMCAT_HOME=C:\tomcat
+TOMCAT_PORT=8080
+MYSQL_HOME=C:\mysql
+MYSQL_PORT=3306
+JAVA_HOME=C:\java\jdk-21
+```
+
+`JAVA_HOME` là tùy chọn. Nếu có, tool dùng JDK đó cho Tomcat và `javac` trong phiên chạy của tool, không sửa biến môi trường của máy.
+
+> `TOMCAT_PORT` chỉ dùng để kiểm tra trạng thái và mở trình duyệt. Muốn đổi port thật của Tomcat thì sửa `server.xml` (**[C] → 1**).
 
 ### 2. Menu Chức Năng (KeyMap)
 
-#### Hệ Thống
--   **[S] Config Paths**: Cấu hình đường dẫn/Port.
--   **[C] Config Files**: Mở nhanh các file cấu hình.
--   **[R] Refresh**: Làm mới trạng thái Server.
--   **[D] Download**: Tải MySQL / JDBC Driver / Oracle JDK.
-
 #### Tomcat Server
--   **[1] Start**: Bật Server.
--   **[2] Stop**: Tắt Server.
--   **[4] Logs**: Xem log console.
--   **[5] User Manager**: Thêm user admin vào `tomcat-users.xml`.
+-   **[1] Start / [2] Stop / [3] Restart**: tool chờ đến khi port thật sự mở/đóng rồi mới báo kết quả. Nếu Tomcat không chịu tắt, tool hỏi trước khi buộc dừng đúng tiến trình đang giữ port.
+-   **[4] Logs**: theo dõi file `catalina.<ngày>.log` mới nhất.
+-   **[5] User Manager**: thêm/cập nhật một user quyền `manager-gui` trong `tomcat-users.xml`. Bạn tự đặt username/password; các user khác trong file được giữ nguyên, bản cũ lưu ở `tomcat-users.xml.bak`.
 
-#### MySQL Database (Smart Mode)
--   **[M1] Start**: Bật MySQL (Tự động Init/Repair nếu cần).
--   **[M5] Auto Lab 13**: Tạo DB `lab13_jdbc` và bảng `users`.
--   **[M6] Backup DB**: Xuất file `.sql`.
--   **[M7] Restore DB**: Nhập dữ liệu từ file `.sql`.
+#### MySQL Database
+-   **[M1] Start**: tự tạo `my.ini` và khởi tạo thư mục `data` (root, không mật khẩu) nếu thiếu.
+-   **[M2] Stop / [M4] Restart**: chỉ dừng MySQL đang chạy trên port đã cấu hình, không đụng tới MySQL khác (vd XAMPP).
+-   **[M3] SQL Editor**: Show/Create database, quản lý bảng, chạy câu SQL tùy ý.
+-   **[M5] Auto Lab 13**: tạo lại DB `lab13_jdbc` và bảng `users` (có hỏi xác nhận vì sẽ xóa DB cũ).
+-   **[M6] Backup / [M7] Restore**: file `.sql` nằm trong thư mục `backups\` cạnh script, tên dạng `<db>_<yyyyMMdd_HHmmss>.sql`.
 
 #### Project Workspace
--   **[6] New Project**: Tạo Project mới (Servlet/JDBC Template).
--   **[7] Scan Projects**: Quản lý Project (Build, Edit VSCode, Browser).
+-   **[6] New Project**: tạo project trong `webapps` từ template Servlet hoặc JDBC. Source nằm ở `WEB-INF\src` (Tomcat không public file `.java`). Template tự dùng `jakarta.servlet` (Tomcat 10+) hoặc `javax.servlet` (Tomcat 9).
+-   **[7] Scan Projects**: Build (`javac` toàn bộ file `.java` trong project → `WEB-INF\classes`), mở trình duyệt, mở VS Code, xóa project (có xác nhận).
+-   **[8] / [9]**: mở thư mục `webapps` / mở `http://localhost:<port>`.
+
+#### Hệ Thống
+-   **[S] Config Paths**: sửa đường dẫn/port. Enter để giữ nguyên, nhập `-` để xóa một giá trị.
+-   **[C] Config Files**: mở nhanh `server.xml`, `tomcat-users.xml`, `web.xml`, `context.xml`, `my.ini`, `config.ini` (VS Code nếu có, không thì Notepad).
+-   **[D] Download**:
+    1.  MySQL JDBC Driver → `<Tomcat>\lib` (Maven Central)
+    2.  MySQL Server portable (cdn.mysql.com)
+    3.  Oracle JDK 21 / 25 (download.oracle.com)
+    4.  Apache Tomcat (archive.apache.org)
 
 ---
 
-## � Kịch Bản Mẫu (Step-by-Step)
+## 📘 Kịch Bản Mẫu (Step-by-Step)
 
 Quy trình chuẩn để làm bài Lab (VD: Lab 13 - JDBC):
 
 **B1: Chuẩn bị môi trường**
-1.  Chọn **[D] Download** -> Tải MySQL (2) và JDBC Driver (1).
-2.  Chọn **[M1] Start MySQL**. (Lần đầu sẽ mất 20s để Init).
-3.  Chọn **[M5] Auto Setup Lab13** -> Tạo sẵn database `lab13_jdbc` và bảng `users`.
+1.  **[D]** → tải Tomcat (4), JDK (3) nếu máy chưa có.
+2.  **[D]** → tải MySQL Server (2) và JDBC Driver (1).
+3.  **[M1] Start MySQL**.
+4.  **[M5] Auto Setup Lab13** → tạo database `lab13_jdbc` và bảng `users`.
 
 **B2: Tạo Project**
-1.  Chọn **[6] New Project** -> Nhập tên (VD: `Lab13`).
-2.  Chọn Template **2. JDBC Template**.
-    -   *Script sẽ tự copy thư viện mysql-connector.jar vào lib cho bạn.*
+1.  **[6] New Project** → nhập tên (VD: `Lab13`) → chọn template **2. JDBC Template**.
 
 **B3: Code & Build**
-1.  Chọn **[7] Scan Projects** -> Chọn `Lab13`.
-2.  Chọn **[3] Edit Source** (Mở VS Code). Sửa file `TestDB.java`.
-3.  Quay lại menu, Chọn **[1] Build**. (Chờ báo *Build Success*).
+1.  **[7] Scan Projects** → chọn `Lab13`.
+2.  **[3] Edit Source** → sửa `WEB-INF\src\TestDB.java`.
+3.  **[1] Build** (chờ báo *Build Success*).
 
 **B4: Chạy thử**
-1.  Về Menu chính, chọn **[3] Restart Tomcat**.
-2.  Vào lại **[7] Scan** -> `Lab13` -> **[2] Open Browser**.
-3.  Thêm `/testdb` vào link trên trình duyệt để test kết nối.
+1.  Về menu chính, **[3] Restart Tomcat**.
+2.  **[7] Scan** → `Lab13` → **[2] Open Browser** → bấm link `/testdb`.
 
 ---
 
-## �🔧 Troubleshooting (Sửa lỗi thường gặp)
+## 🔧 Troubleshooting
 
-**1. Lỗi "Can't change dir" khi start MySQL?**
--   **Đã Fix ở v9**: Script tự động xử lý đường dẫn có dấu cách.
+**Java báo MISSING trên dashboard?**
+Bấm **[D] → 3** để tải JDK, hoặc **[S]** rồi nhập `Java Home` trỏ tới JDK đã cài.
 
-**2. Tool bị tắt khi ấn Start MySQL?**
--   **Đã Fix ở v9**: Script đã tách logic Auto-Init ra khỏi khối lệnh gây lỗi.
+**Build lỗi `package jakarta.servlet does not exist`?**
+Project được tạo cho Tomcat 10+ nhưng đang build với Tomcat 9 (hoặc ngược lại với `javax.servlet`). Đổi dòng `import` cho khớp phiên bản Tomcat.
+
+**JDBC báo `ClassNotFoundException: com.mysql.cj.jdbc.Driver`?**
+Chưa có driver: **[D] → 1**, sau đó Restart Tomcat.
+
+**Sửa script xong thì menu nhảy lung tung?**
+File `.cmd` phải lưu với line ending **CRLF**. Repo đã có `.gitattributes` ép CRLF; nếu sửa bằng editor thì đừng đổi sang LF.
+
+---
+
+## 📂 Các File Trong Repo
+
+| File | Ghi chú |
+| --- | --- |
+| `TomCatMenu.cmd` | **Bản hiện tại (v10)** – dùng file này. |
+| `TomCatMenuV7.cmd`, `TomCatMenuV6.cmd`, `TomCatMenuV5.bat`, `data.json` | Các bản cũ, giữ lại để tham khảo. |
+
+### Thay đổi chính ở v10 so với V7
+-   Sửa **Restart Tomcat / Restart MySQL** (bản cũ chỉ stop rồi quay về menu, không start lại).
+-   Sửa tool **tự thoát khi mở VS Code** và `config.ini` bị ghi nhầm vào `tomcat\bin` sau khi Start.
+-   Sửa **Logs** (Windows không có `catalina.out`).
+-   Bấm Enter không còn **lặp lại lựa chọn trước** (trước đây có thể xóa nhầm project).
+-   Xóa project, drop table, restore, setup Lab13 đều **hỏi xác nhận**.
+-   User Manager không còn ghi đè cả file bằng `admin/123`.
+-   Build chạy được khi đường dẫn Tomcat **có khoảng trắng**.
+-   Tải MySQL từ CDN chính thức (mirror cũ đã ngừng hoạt động), thêm lại mục tải Tomcat, giải nén bằng `tar` nhanh hơn nhiều so với `Expand-Archive`.
+-   Kiểm tra input (tên project, database, bảng, port) trước khi dùng.
 
 ---
 
 ## 👤 Tác Giả & Phiên Bản
 
-**Phát triển bởi**: Nguyễn Quốc Anh (NQA TECH) & Gemini AI
-**Phiên bản hiện tại**: 9.0.0 (Cyber Neon Ultra)
-**Update**: 19/12/2025
+**Phát triển bởi**: Nguyễn Quốc Anh (NQA TECH)
+**Phiên bản hiện tại**: 10.0.0 (Cyber Neon)

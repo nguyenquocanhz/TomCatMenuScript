@@ -1,0 +1,5 @@
+# File batch bat buoc dung CRLF: voi LF, cmd.exe nhay sai label (goto/call) o file dai.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.PNG binary
